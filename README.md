@@ -1,6 +1,10 @@
 # Akta 01: Zniknięcie prototypu
 
-Pierwsza wersja okienkowej gry detektywistycznej napisanej w Javie i JavaFX. Podczas zamkniętej prezentacji znika prototyp urządzenia. Zbadaj trzy miejsca, porozmawiaj z podejrzanymi i wskaż osobę, której wersja wydarzeń nie zgadza się z dowodami.
+Okienkowa gra detektywistyczna napisana w Javie i JavaFX. Podczas zamkniętej prezentacji znika prototyp urządzenia. Gra zaczyna się od wyboru akt; druga sprawa jest zapowiedziana w menu, a pierwsza jest grywalna. Laboratorium, korytarz i biuro mają pełnoekranowe sceny z klikalnymi przedmiotami i postaciami.
+
+## Podgląd gry
+
+![Laboratorium w pierwszej sprawie](docs/screenshots/game.jpg)
 
 ## Uruchomienie
 
@@ -17,14 +21,7 @@ mvn javafx:run
 **Terminal, starsza wersja konsolowa:**
 
 ```powershell
-javac -encoding UTF-8 -d build src\pl\detektyw\*.java
-java '-Dfile.encoding=UTF-8' -cp build pl.detektyw.Main
+mvn compile
+java '-Dfile.encoding=UTF-8' -cp target/classes pl.detektyw.Main
 ```
 
-## Plan nauki
-
-1. **Obecna wersja:** klasy, metody, `enum`, `Set`, stan gry i podstawy JavaFX.
-2. **Następny krok:** dedukcje łączące kilka śladów oraz ciekawsza zagadka.
-3. **Dalszy rozwój:** rozgałęzione przesłuchania, zapis gry, testy zasad i oprawa graficzna.
-
-Kod gry znajduje się w `src/pl/detektyw/`. `DetectiveApp` buduje okno, `Investigation` przechowuje postęp, `CaseFile` zawiera treść sprawy, a `Main` i `Game` obsługują wersję konsolową.

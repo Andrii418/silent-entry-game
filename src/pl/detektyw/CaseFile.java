@@ -7,7 +7,7 @@ final class CaseFile {
 
     enum Place {
         LABORATORIUM("Laboratorium", "Na podłodze leży identyfikator techniczny Marka. Rejestr zamka pokazuje wejście o 21:14.", "identyfikator Marka"),
-        KORYTARZ("Korytarz", "Kamera zgasła o 21:12. W szafce serwisowej leży wyjęty bezpiecznik.", "bezpiecznik"),
+        KORYTARZ("Korytarz", "Kamera zgasła o 21:12. W szafce serwisowej brakuje bezpiecznika; wyjęty leżał obok na podłodze.", "bezpiecznik"),
         BIURO("Biuro", "W drukarce leży umowa sprzedaży prototypu konkurencji z podpisem Oli.", "umowa z podpisem Oli");
 
         final String name;
