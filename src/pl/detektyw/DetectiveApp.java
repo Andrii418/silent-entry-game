@@ -364,6 +364,17 @@ public final class DetectiveApp extends Application {
             empty.setStyle(MUTED);
             evidence.getChildren().add(empty);
         }
+        if (investigation.hasDeductedHiddenEntry()) {
+            evidence.getChildren().add(section("DEDUKCJE"));
+
+            Label deduction = new Label(
+                    "Kamera zgasła przed wejściem do laboratorium. "
+                            + "Ktoś użył identyfikatora Marka."
+            );
+            deduction.setWrapText(true);
+            deduction.setStyle(TEXT);
+            evidence.getChildren().add(deduction);
+        }
     }
 
     private static Button button(String title, Runnable action) {
