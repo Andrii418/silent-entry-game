@@ -8,7 +8,9 @@ Okienkowa gra detektywistyczna napisana w Javie i JavaFX. Podczas zamkniętej pr
 
 ## Rozgrywka
 
-Przeglądaj laboratorium, korytarz i biuro, klikając przedmioty, postacie i drzwi na ilustracjach. Podniesiony identyfikator i bezpiecznik widać w prawym górnym rogu. Po połączeniu ich na tablicy znikają z podręcznych przedmiotów, ale pozostają zapisane jako dowody. Zestawienie godziny awarii kamery z godziną użycia identyfikatora wyjaśnia wejście bez nagrania. Podczas przesłuchań wybierasz pytania w pasie dialogowym, widząc rozmówcę i pokój. Na ilustrowanej tablicy dowodów porównujesz też alibi. Cel widoczny u góry sceny oraz dwupoziomowe podpowiedzi prowadzą przez sprawę. Finał wymaga ułożenia całej teorii: kto ukradł prototyp, jak wszedł do laboratorium i dlaczego to zrobił. Jeśli teoria nie pasuje do dowodów, gra wskazuje konkretną sprzeczność.
+Przeglądaj laboratorium, korytarz i biuro, klikając przedmioty, postacie i drzwi na ilustracjach. Znalezienie identyfikatora prowadzi prosto do zbliżenia czytnika, a podniesienie bezpiecznika do otwartej szafki serwisowej. Odczytujesz dziennik zamka, wkładasz bezpiecznik do pustego gniazda i widzisz, jak kamera wraca do pracy. Dopiero po przywróceniu zasilania możesz odczytać archiwum kamery. Naprawa nie odzyskuje nagrania z chwili wejścia. Godziny na urządzeniach są tekstem gry, więc da się je wyraźnie przeczytać. Na ilustrowanej osi czasu zestawiasz odczyty z przedmiotami i wybierasz wniosek, który naprawdę wynika z dowodów. Błędny wniosek daje konkretną wskazówkę.
+
+Podczas przesłuchań wybierasz pytania w pasie dialogowym, widząc rozmówcę i pokój. Na tablicy dowodów porównujesz też alibi. Cel widoczny u góry sceny oraz dwupoziomowe podpowiedzi prowadzą przez sprawę. Finał wymaga ułożenia całej teorii: kto ukradł prototyp, jak wszedł do laboratorium i dlaczego to zrobił. Jeśli teoria nie pasuje do dowodów, gra wskazuje konkretną sprzeczność.
 
 Kod interfejsu znajduje się w `src/pl/detektyw/DetectiveGame.java`, a zasady śledztwa i jego postęp w `Investigation.java`. Starsza wersja konsolowa korzysta z tych samych zasad.
 

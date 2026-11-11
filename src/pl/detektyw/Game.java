@@ -59,6 +59,16 @@ final class Game {
         }
         investigation.discoverClue(place);
         System.out.println(place.name + ": " + place.description);
+        if (place == CaseFile.Place.LABORATORIUM) investigation.readLockLog();
+        if (place == CaseFile.Place.KORYTARZ) {
+            investigation.inspectCabinet();
+            if (investigation.installFuse()) {
+                System.out.println("Wkładasz znaleziony bezpiecznik do szafki. Kamera znów działa.");
+            }
+            if (investigation.readCameraLog()) {
+                System.out.println("Odczyt archiwum: o 21:12 zanikło zasilanie, o 21:14 nie ma nagrania.");
+            }
+        }
     }
 
     private void suspects() {
@@ -91,13 +101,23 @@ final class Game {
             }
         }
         System.out.println("Przesłuchano: " + investigation.questionedCount() + "/3 osób.");
-        System.out.println("1. Połącz identyfikator i bezpiecznik");
+        System.out.println("1. Porównaj zapis zamka i awarię kamery");
         System.out.println("2. Porównaj zeznania Leny i Oli");
         System.out.println("0. Wróć do akt");
         switch (read()) {
-            case "1" -> System.out.println(investigation.deduceHiddenEntry()
-                    ? "Przypięto oba przedmioty do tablicy. Kamera zgasła przed wejściem z użyciem identyfikatora Marka."
-                    : "Najpierw znajdź identyfikator i bezpiecznik.");
+            case "1" -> {
+                System.out.println("Jaki wniosek wynika z godzin 21:12 i 21:14?");
+                System.out.println("1. " + CaseFile.EntryConclusion.MAREK_ENTERED.description);
+                System.out.println("2. " + CaseFile.EntryConclusion.UNRECORDED_BADGE.description);
+                System.out.println("3. " + CaseFile.EntryConclusion.MAREK_STOLE.description);
+                CaseFile.EntryConclusion conclusion = switch (read()) {
+                    case "1" -> CaseFile.EntryConclusion.MAREK_ENTERED;
+                    case "2" -> CaseFile.EntryConclusion.UNRECORDED_BADGE;
+                    case "3" -> CaseFile.EntryConclusion.MAREK_STOLE;
+                    default -> null;
+                };
+                System.out.println(investigation.deduceHiddenEntry(conclusion).feedback());
+            }
             case "2" -> System.out.println(investigation.deduceAlibiContradiction()
                     ? "Lena była sama w biurze o 21:12, choć Ola twierdzi, że była wtedy z nią."
                     : "Najpierw przesłuchaj Lenę i Olę.");

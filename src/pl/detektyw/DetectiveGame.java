@@ -1,6 +1,8 @@
 package pl.detektyw;
 
 import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.PauseTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Application;
@@ -27,6 +29,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.scene.shape.StrokeLineCap;
@@ -49,11 +52,11 @@ public final class DetectiveGame extends Application {
     private static final String THEORY_OPTION = "-fx-background-color: rgba(255, 244, 218, 0.22);"
             + "-fx-border-color: rgba(96, 61, 25, 0.35); -fx-border-radius: 8;"
             + "-fx-background-radius: 8; -fx-text-fill: #322417;"
-            + "-fx-font-family: Georgia; -fx-font-size: 21px; -fx-padding: 9 12;";
+            + "-fx-font-family: Georgia; -fx-font-size: 19px; -fx-padding: 6 10;";
     private static final String THEORY_SELECTED = "-fx-background-color: rgba(231, 170, 72, 0.72);"
             + "-fx-border-color: #7c4d1d; -fx-border-width: 2; -fx-border-radius: 8;"
             + "-fx-background-radius: 8; -fx-text-fill: #21170e;"
-            + "-fx-font-family: Georgia; -fx-font-size: 21px; -fx-font-weight: bold; -fx-padding: 9 12;";
+            + "-fx-font-family: Georgia; -fx-font-size: 19px; -fx-font-weight: bold; -fx-padding: 6 10;";
 
     private Stage stage;
     private ImageCursor defaultCursor;
@@ -282,9 +285,9 @@ public final class DetectiveGame extends Application {
         badgeInventoryIcon = inventoryImage("identyfikator.png");
         fuseInventoryIcon = inventoryImage("bezpiecznik.png");
         StackPane badgeSlot = inventorySlot(badgePlaceholder, badgeInventoryIcon,
-                "Identyfikator: zamek odnotował jego użycie o 21:14");
+                "Identyfikator Marka — sprawdź czytnik przy drzwiach");
         StackPane fuseSlot = inventorySlot(fusePlaceholder, fuseInventoryIcon,
-                "Bezpiecznik: kamera zgasła o 21:12");
+                "Bezpiecznik — sprawdź archiwum kamery");
         HBox slots = new HBox(8, badgeSlot, fuseSlot);
         VBox panel = new VBox(5, inventoryCount, slots);
         panel.setPadding(new Insets(8));
@@ -330,11 +333,19 @@ public final class DetectiveGame extends Application {
     private String nextObjective() {
         if (solved) return "Sprawa rozwiązana.";
         if (!investigation.hasVisited(CaseFile.Place.LABORATORIUM))
-            return "Cel: podnieś identyfikator — pokaże, jak otwarto zamek.";
+            return "Cel: podnieś identyfikator leżący w laboratorium.";
+        if (!investigation.hasReadLockLog())
+            return "Cel: odczytaj dziennik zamka przy drzwiach laboratorium.";
+        if (!investigation.hasInspectedCabinet())
+            return "Cel: otwórz szafkę serwisową po prawej w korytarzu.";
         if (!investigation.hasVisited(CaseFile.Place.KORYTARZ))
-            return "Cel: podnieś bezpiecznik — wyjaśni przerwę nagrania.";
+            return "Cel: znajdź bezpiecznik na podłodze obok szafki.";
+        if (!investigation.hasInstalledFuse())
+            return "Cel: włóż bezpiecznik do pustego gniazda w szafce.";
+        if (!investigation.hasReadCameraLog())
+            return "Cel: sprawdź zapis awarii po uruchomieniu kamery.";
         if (!investigation.hasDeductedHiddenEntry())
-            return "Cel: połącz oba przedmioty na tablicy dowodów.";
+            return "Cel: zestaw odczyty zamka i kamery na tablicy dowodów.";
         if (!investigation.hasQuestioned(CaseFile.Suspect.MAREK))
             return "Cel: skonfrontuj Marka z dowodami.";
         if (!investigation.hasVisited(CaseFile.Place.BIURO))
@@ -359,11 +370,23 @@ public final class DetectiveGame extends Application {
         if (!investigation.hasVisited(CaseFile.Place.LABORATORIUM)) {
             hint = direct ? "Kliknij identyfikator leżący na podłodze laboratorium."
                     : "Rozejrzyj się po podłodze, nie tylko po biurku.";
+        } else if (!investigation.hasReadLockLog()) {
+            hint = direct ? "Kliknij czytnik kart obok drzwi laboratorium, potem odczytaj dziennik."
+                    : "Zamek mógł zapisać kartę używaną przy wejściu.";
+        } else if (!investigation.hasInspectedCabinet()) {
+            hint = direct ? "Przejdź do korytarza i kliknij dużą szafkę po prawej."
+                    : "Sprawdź, skąd kamera bierze zasilanie.";
         } else if (!investigation.hasVisited(CaseFile.Place.KORYTARZ)) {
-            hint = direct ? "Przejdź przez drzwi laboratorium i kliknij bezpiecznik na podłodze."
-                    : "Brak zasilania kamery może mieć związek z szafką serwisową.";
+            hint = direct ? "W korytarzu kliknij bezpiecznik na podłodze przy szafce."
+                    : "Puste gniazdo ma odpowiednik na podłodze obok szafki.";
+        } else if (!investigation.hasInstalledFuse()) {
+            hint = direct ? "Otwórz szafkę w korytarzu i kliknij „Włóż bezpiecznik”."
+                    : "Znaleziony bezpiecznik pasuje do pustego gniazda. Bez prądu archiwum jest niedostępne.";
+        } else if (!investigation.hasReadCameraLog()) {
+            hint = direct ? "Wróć do szafki w korytarzu i kliknij „Sprawdź zapis awarii”."
+                    : "Kamera już działa. Teraz odczytaj, od której chwili nie było nagrania.";
         } else if (!investigation.hasDeductedHiddenEntry()) {
-            hint = direct ? "Otwórz Dowody i kliknij „Połącz ślady”."
+            hint = direct ? "Otwórz Dowody, kliknij „Połącz ślady” i wybierz wniosek, który nie zgaduje osoby."
                     : "Identyfikator wyjaśnia wejście, a bezpiecznik brak nagrania. Zestaw godziny 21:12 i 21:14.";
         } else if (!investigation.hasQuestioned(CaseFile.Suspect.MAREK)) {
             hint = direct ? "Wróć do korytarza i kliknij Marka stojącego na środku."
@@ -484,7 +507,11 @@ public final class DetectiveGame extends Application {
                 message.setText("Zanim wyjdziesz, przyjrzyj się podłodze obok drzwi.");
             }
         });
-        scaled(room, door, terminal, cabinet);
+        Rectangle reader = new Rectangle(365, 362, 56, 105);
+        reader.setArcWidth(8);
+        reader.setArcHeight(8);
+        outline(reader, "Czytnik kart — dziennik zamka", this::showLockLog);
+        scaled(room, door, terminal, cabinet, reader);
 
         ImageView badge = sprite(room, "identyfikator.png", 0.35, 0.76, 0.10);
         Tooltip.install(badge, new Tooltip("Identyfikator Marka"));
@@ -492,10 +519,15 @@ public final class DetectiveGame extends Application {
         badge.setOnMouseClicked(event -> {
             investigation.discoverClue(CaseFile.Place.LABORATORIUM);
             badge.setVisible(false);
-            message.setText("Identyfikator trafił do Przedmiotów w prawym górnym rogu. "
-                    + "Zamek zapisał wejście o 21:14; teraz sprawdź, dlaczego kamera tego nie nagrała.");
+            message.setText("Identyfikator trafił do Przedmiotów. Sprawdź czytnik przy drzwiach: "
+                    + "czy zamek zapisał użycie tej karty?");
             updateProgress();
             pulse(badgeInventoryIcon);
+            PauseTransition prompt = new PauseTransition(Duration.millis(550));
+            prompt.setOnFinished(done -> {
+                if (stage.getScene().getRoot() == room) showLockLog();
+            });
+            prompt.play();
         });
         raiseHud(room);
         transitionTo(room, introduction ? () -> card("AKTA 01  /  ZNIKNIĘCIE PROTOTYPU",
@@ -506,19 +538,20 @@ public final class DetectiveGame extends Application {
     }
 
     private void showCorridor() {
-        Pane room = room("korytarz-v3.png", "Kamera zgasła o 21:12. Co odcięło jej zasilanie? "
+        Pane room = room("korytarz-v3.png", investigation.hasInstalledFuse()
+                ? (investigation.hasReadCameraLog()
+                ? "Kamera działa po naprawie. Starej luki w nagraniu to nie wypełni. "
+                : "Kamera działa po naprawie. Teraz możesz odczytać archiwum. ")
+                + "Biuro jest za przeszklonymi drzwiami."
+                : "Kamera nie nagrywa. Co odcięło jej zasilanie? "
                 + "Biuro jest za przeszklonymi drzwiami.");
 
         Polygon labDoor = new Polygon(126, 162, 398, 258, 398, 742, 130, 812);
         outline(labDoor, "Powrót do laboratorium", this::showLaboratory);
         Polygon camera = new Polygon(94, 23, 248, 73, 214, 129, 79, 80);
-        outline(camera, "Kamera", () -> message.setText(
-                "Kamera przestała nagrywać o 21:12 — dwie minuty przed otwarciem laboratorium."));
+        outline(camera, "Kamera — zapis nagrania", this::showCameraLog);
         Polygon cabinet = new Polygon(1426, 251, 1608, 194, 1608, 810, 1426, 755);
-        outline(cabinet, "Szafka serwisowa", () -> message.setText(
-                investigation.hasVisited(CaseFile.Place.KORYTARZ)
-                        ? "W szafce brakuje bezpiecznika. Sprawdź go w Przedmiotach lub na tablicy dowodów."
-                        : "W szafce brakuje bezpiecznika. Spójrz na podłogę obok niej."));
+        outline(cabinet, "Szafka serwisowa — puste gniazdo", this::showCameraLog);
         Polygon officeDoor = new Polygon(1100, 278, 1287, 278, 1287, 633, 1100, 633);
         outline(officeDoor, "Drzwi do biura", this::showOffice);
         scaled(room, labDoor, camera, cabinet, officeDoor);
@@ -538,14 +571,224 @@ public final class DetectiveGame extends Application {
         fuse.setOnMouseClicked(event -> {
             investigation.discoverClue(CaseFile.Place.KORYTARZ);
             fuse.setVisible(false);
-            message.setText("Bezpiecznik trafił do Przedmiotów. Bez niego kamera zgasła o 21:12. "
-                    + "Połącz go z identyfikatorem na tablicy: czy wejście o 21:14 zostało nagrane?");
+            message.setText("Bezpiecznik trafił do Przedmiotów. Puste gniazdo jest w szafce serwisowej. "
+                    + "Sprawdź ekran kamery, aby ustalić czas przerwy nagrania.");
             updateProgress();
             pulse(fuseInventoryIcon);
+            PauseTransition prompt = new PauseTransition(Duration.millis(550));
+            prompt.setOnFinished(done -> {
+                if (stage.getScene().getRoot() == room) showCameraLog();
+            });
+            prompt.play();
         });
 
         raiseHud(room);
         transitionTo(room);
+    }
+
+    private void showLockLog() {
+        Pane inspection = new Pane();
+        background(inspection, "zapis-zamka.png");
+        Group content = new Group();
+        Label heading = inspectionNote("LABORATORIUM  /  CZYTNIK KART", 50, 48, 620);
+        Label display = text("", 27, "#09363b");
+        display.setStyle(display.getStyle() + "-fx-font-family: Consolas; -fx-font-weight: bold;");
+        display.setWrapText(true);
+        display.setPrefWidth(385);
+        display.setLayoutX(1002);
+        display.setLayoutY(215);
+        Label note = inspectionNote("Czytnik zapisuje użycie karty, ale nie rozpoznaje twarzy.",
+                50, 750, 900);
+        Button read = inspectionButton("Odczytaj dziennik", 1180, 805, 345, true);
+        Runnable showEntries = () -> display.setText("DZIENNIK ZAMKA\n\n21:11  ZAMKNIĘTE\n\n21:14  KARTA M-04\n         OTWARTO");
+        if (investigation.hasReadLockLog()) {
+            showEntries.run();
+            read.setDisable(true);
+        } else {
+            display.setText("DZIENNIK ZAMKA\n\nDotknij przycisku,\naby odczytać pamięć.");
+        }
+        read.setOnAction(event -> {
+            investigation.readLockLog();
+            showEntries.run();
+            note.setText("21:14: użyto karty Marka. To nie dowodzi, że Marek wszedł osobiście.");
+            read.setDisable(true);
+            updateProgress();
+            reveal(display);
+        });
+        Button back = inspectionButton("Wróć do laboratorium", 70, 805, 350, false);
+        back.setOnAction(event -> showLaboratory());
+        content.getChildren().addAll(heading, display, note, read, back);
+        scaledUi(inspection, content);
+        transitionTo(inspection);
+    }
+
+    private void showCameraLog() {
+        investigation.inspectCabinet();
+        updateProgress();
+        Pane inspection = new Pane();
+        background(inspection, "awaria-kamery.png");
+        Group content = new Group();
+        Label heading = inspectionNote("KORYTARZ  /  ZASILANIE KAMERY", 50, 42, 700);
+        Rectangle poweredScreen = new Rectangle(266, 281, 674, 414);
+        poweredScreen.setArcWidth(16);
+        poweredScreen.setArcHeight(16);
+        poweredScreen.setFill(Color.web("#168a8d"));
+        poweredScreen.setOpacity(investigation.hasInstalledFuse() ? 0.42 : 0);
+        Circle poweredLight = new Circle(793, 726, 9, Color.web("#65ffc1"));
+        poweredLight.setEffect(new DropShadow(22, Color.web("#65ffc1")));
+        poweredLight.setOpacity(investigation.hasInstalledFuse() ? 1 : 0);
+        Group fuseInSocket = installedFuseArt();
+        fuseInSocket.setOpacity(investigation.hasInstalledFuse() ? 1 : 0);
+        Label display = text("", 29, "#d4e9ef");
+        display.setStyle(display.getStyle() + "-fx-font-family: Consolas; -fx-font-weight: bold;");
+        display.setWrapText(true);
+        display.setPrefWidth(635);
+        display.setLayoutX(290);
+        display.setLayoutY(318);
+        Label note = inspectionNote(investigation.hasInstalledFuse()
+                ? investigation.hasReadCameraLog()
+                ? "Kamera działa teraz. Naprawa nie przywróci nagrania z 21:14."
+                : "Kamera działa teraz. Odczytaj archiwum, by ustalić czas przerwy."
+                : investigation.hasHeldEvidence(CaseFile.Place.KORYTARZ)
+                ? "Masz bezpiecznik. Włóż go do pustego gniazda, by uruchomić ekran."
+                : "W szafce jest puste gniazdo. Znajdź bezpiecznik na podłodze korytarza.",
+                55, 750, 1070);
+        Button read = inspectionButton(investigation.hasInstalledFuse()
+                ? "Sprawdź zapis awarii" : "Archiwum bez zasilania", 455, 805, 425, false);
+        read.setDisable(!investigation.hasInstalledFuse() || investigation.hasReadCameraLog());
+        Button install = inspectionButton(investigation.hasInstalledFuse()
+                ? "Kamera naprawiona" : "Włóż bezpiecznik do szafki", 1085, 805, 470, true);
+        install.setDisable(investigation.hasInstalledFuse()
+                || !investigation.hasHeldEvidence(CaseFile.Place.KORYTARZ));
+        Runnable showEntries = () -> display.setText("ARCHIWUM KAMERY\n\n21:11  OBRAZ JEST\n\n21:12  ZASILANIE UTRACONE\n\n21:14  BRAK NAGRANIA"
+                + (investigation.hasInstalledFuse() ? "\n\nTERAZ  NAGRYWANIE WZNOWIONE" : ""));
+        if (investigation.hasReadCameraLog()) {
+            showEntries.run();
+        } else {
+            display.setText(investigation.hasInstalledFuse()
+                    ? "KAMERA AKTYWNA\n\nOBRAZ NA ŻYWO\n\nOdczytaj archiwum."
+                    : "BRAK ZASILANIA\n\nArchiwum jest\nniedostępne.");
+        }
+        read.setOnAction(event -> {
+            if (!investigation.readCameraLog()) return;
+            showEntries.run();
+            note.setText("O 21:12 zasilanie znikło. O 21:14 kamera niczego nie nagrała.");
+            read.setDisable(true);
+            updateProgress();
+            reveal(display);
+        });
+        Button back = inspectionButton("Wróć do korytarza", 70, 805, 350, false);
+        back.setOnAction(event -> showCorridor());
+        install.setOnAction(event -> {
+            if (!investigation.installFuse()) return;
+            install.setDisable(true);
+            back.setDisable(true);
+            display.setText("URUCHAMIANIE KAMERY...");
+            fuseInSocket.setTranslateY(160);
+            TranslateTransition slide = new TranslateTransition(Duration.millis(650), fuseInSocket);
+            slide.setFromY(160);
+            slide.setToY(0);
+            FadeTransition appear = new FadeTransition(Duration.millis(650), fuseInSocket);
+            appear.setFromValue(0);
+            appear.setToValue(1);
+            ParallelTransition insert = new ParallelTransition(slide, appear);
+            insert.setOnFinished(done -> {
+                FadeTransition screenGlow = new FadeTransition(Duration.millis(550), poweredScreen);
+                screenGlow.setFromValue(0);
+                screenGlow.setToValue(0.42);
+                FadeTransition indicatorGlow = new FadeTransition(Duration.millis(550), poweredLight);
+                indicatorGlow.setFromValue(0);
+                indicatorGlow.setToValue(1);
+                ParallelTransition boot = new ParallelTransition(screenGlow, indicatorGlow);
+                boot.setOnFinished(powered -> {
+                    display.setText("KAMERA AKTYWNA\n\nTERAZ  OBRAZ JEST\n\nOdczytaj archiwum.");
+                    note.setText("Kamera działa. Archiwum jest dostępne — sprawdź czas przerwy.");
+                    install.setText("Kamera naprawiona");
+                    read.setText("Sprawdź zapis awarii");
+                    read.setDisable(false);
+                    back.setDisable(false);
+                    updateProgress();
+                    reveal(display);
+                });
+                boot.play();
+            });
+            insert.play();
+        });
+        content.getChildren().addAll(poweredScreen, poweredLight, fuseInSocket,
+                heading, display, note, read, install, back);
+        scaledUi(inspection, content);
+        transitionTo(inspection);
+    }
+
+    private Group installedFuseArt() {
+        Rectangle glass = new Rectangle(1215, 544, 50, 153);
+        glass.setArcWidth(12);
+        glass.setArcHeight(12);
+        glass.setFill(Color.web("#f7e2a7"));
+        glass.setStroke(Color.web("#a96824"));
+        glass.setStrokeWidth(3);
+        Rectangle band = new Rectangle(1215, 602, 50, 16);
+        band.setFill(Color.web("#aa4c35"));
+        Rectangle top = new Rectangle(1210, 530, 60, 28);
+        Rectangle bottom = new Rectangle(1210, 683, 60, 28);
+        top.setArcWidth(10);
+        top.setArcHeight(10);
+        bottom.setArcWidth(10);
+        bottom.setArcHeight(10);
+        top.setFill(Color.web("#d99742"));
+        bottom.setFill(Color.web("#d99742"));
+        Group fuse = new Group(glass, band, top, bottom);
+        fuse.setEffect(new DropShadow(12, Color.web("#ffd16c")));
+        return fuse;
+    }
+
+    private void showContract() {
+        Pane inspection = new Pane();
+        background(inspection, "umowa.png");
+        Group content = new Group();
+        Label heading = inspectionNote("BIURO  /  WYDRUK Z DRUKARKI", 50, 48, 625);
+        Label document = text("UMOWA SPRZEDAŻY\n\nPrzedmiot: prototyp\nodbiornika P-17\n\nNabywca: konkurencyjne\nlaboratorium\n\nPodpis: Ola", 29, "#3c2b1b");
+        document.setStyle(document.getStyle() + "-fx-font-family: Georgia; -fx-font-weight: bold;");
+        document.setWrapText(true);
+        document.setPrefWidth(500);
+        document.setLayoutX(650);
+        document.setLayoutY(380);
+        Label note = inspectionNote("Podpis wskazuje motyw. Sam dokument nie mówi, kto otworzył laboratorium.",
+                50, 765, 950);
+        Button collect = inspectionButton("Dodaj dokument do dowodów", 1125, 805, 430, true);
+        collect.setDisable(investigation.hasVisited(CaseFile.Place.BIURO));
+        collect.setOnAction(event -> {
+            investigation.discoverClue(CaseFile.Place.BIURO);
+            note.setText("Umowa trafiła do Dowodów. Sprawdź też alibi i sposób wejścia.");
+            collect.setDisable(true);
+            updateProgress();
+            pulse(document);
+        });
+        Button back = inspectionButton("Wróć do biura", 70, 805, 315, false);
+        back.setOnAction(event -> showOffice());
+        content.getChildren().addAll(heading, document, note, collect, back);
+        scaledUi(inspection, content);
+        transitionTo(inspection);
+    }
+
+    private Label inspectionNote(String value, double x, double y, double width) {
+        Label label = text(value, 25, "#fff0cf");
+        label.setWrapText(true);
+        label.setPrefWidth(width);
+        label.setPadding(new Insets(9, 15, 9, 15));
+        label.setStyle(label.getStyle() + "-fx-background-color: rgba(7, 20, 32, 0.88);"
+                + "-fx-background-radius: 9;");
+        label.setLayoutX(x);
+        label.setLayoutY(y);
+        return label;
+    }
+
+    private Button inspectionButton(String value, double x, double y, double width, boolean important) {
+        Button action = button(value, important);
+        action.setPrefWidth(width);
+        action.setLayoutX(x);
+        action.setLayoutY(y);
+        return action;
     }
 
     private void showMarekDialogue() {
@@ -555,7 +798,7 @@ public final class DetectiveGame extends Application {
         camera.setOnAction(event -> reply.setText(
                 "Marek: O 21:10 poszedłem po narzędzia. Potem nie dotykałem kamery."));
 
-        Button evidence = button("Pokaż identyfikator i bezpiecznik", true);
+        Button evidence = button("Skonfrontuj z osią czasu", true);
         evidence.setOnAction(event -> {
             if (!investigation.hasDeductedHiddenEntry()) {
                 reply.setText("Najpierw znajdź oba ślady i połącz je w Dowodach.");
@@ -667,16 +910,7 @@ public final class DetectiveGame extends Application {
         Polygon door = new Polygon(0, 89, 232, 95, 230, 730, 0, 751);
         outline(door, "Powrót do korytarza", this::showCorridor);
         Polygon printer = new Polygon(268, 385, 420, 381, 434, 516, 258, 519);
-        outline(printer, "Drukarka", () -> {
-            if (!investigation.hasVisited(CaseFile.Place.BIURO)) {
-                investigation.discoverClue(CaseFile.Place.BIURO);
-                message.setText("W drukarce jest umowa sprzedaży prototypu konkurencji "
-                        + "z podpisem Oli. To wskazuje motyw, ale sprawdź też dostęp do laboratorium.");
-                updateProgress();
-            } else {
-                message.setText("Umowa z podpisem Oli jest już w aktach dowodów.");
-            }
-        });
+        outline(printer, "Drukarka — dokument", this::showContract);
         Polygon lena = new Polygon(
                 476, 188, 497, 185, 521, 193, 538, 211,
                 543, 233, 535, 250, 548, 272, 564, 294,
@@ -718,13 +952,23 @@ public final class DetectiveGame extends Application {
                 boardText("BIURO", 27, 1107, 215, 300));
         content.getChildren().add(boardText(
                 investigation.hasVisited(CaseFile.Place.LABORATORIUM)
-                        ? "Identyfikator Marka leżał na podłodze. Zamek zapisał wejście o 21:14."
+                        ? "Identyfikator Marka leżał na podłodze. "
+                        + (investigation.hasReadLockLog()
+                        ? "Dziennik: karta M-04, otwarto o 21:14."
+                        : "Nie odczytano dziennika zamka.")
                         : "Nie zbadano podłogi laboratorium.",
                 23, 318, 295, 305));
         content.getChildren().add(boardText(
                 investigation.hasVisited(CaseFile.Place.KORYTARZ)
-                        ? "Kamera zgasła o 21:12. Wyjęty bezpiecznik leżał przy szafce."
-                        : "Nie znaleziono przyczyny awarii kamery.",
+                        ? (investigation.hasInstalledFuse()
+                        ? "Bezpiecznik włożono; kamera znów działa. "
+                        : "Wyjęty bezpiecznik leżał przy szafce. ")
+                        + (investigation.hasReadCameraLog()
+                        ? "Archiwum: o 21:14 brak nagrania."
+                        : "Nie odczytano zapisu kamery.")
+                        : investigation.hasInspectedCabinet()
+                        ? "W szafce jest puste gniazdo. Poszukaj bezpiecznika obok."
+                        : "Nie zbadano przyczyny awarii kamery.",
                 23, 714, 295, 305));
         content.getChildren().add(boardText(
                 investigation.hasVisited(CaseFile.Place.BIURO)
@@ -737,17 +981,26 @@ public final class DetectiveGame extends Application {
         if (investigation.hasQuestioned(CaseFile.Suspect.OLA)) {
             content.getChildren().add(boardText("Ola: o 21:12 byłam z Leną.", 19, 1107, 475, 300));
         }
+        String nextStep;
+        if (investigation.hasDeductedHiddenEntry()) {
+            nextStep = "Karta użyta podczas awarii. Naprawa nie odzyskała starego nagrania.";
+        } else if (!investigation.hasHeldEvidence(CaseFile.Place.LABORATORIUM)
+                || !investigation.hasVisited(CaseFile.Place.KORYTARZ)) {
+            nextStep = "Znajdź identyfikator i bezpiecznik w pomieszczeniach.";
+        } else if (!investigation.hasReadLockLog()) {
+            nextStep = "Odczytaj dziennik zamka w laboratorium.";
+        } else if (!investigation.hasInstalledFuse()) {
+            nextStep = "Włóż bezpiecznik do szafki, by uruchomić ekran archiwum.";
+        } else if (!investigation.hasReadCameraLog()) {
+            nextStep = "Kamera działa. Odczytaj archiwum, by ustalić czas przerwy.";
+        } else {
+            nextStep = "Masz odczyty i wynik naprawy. Odtwórz kolejność zdarzeń.";
+        }
         Label feedback = boardText("Ślady " + investigation.clueCount() + "/3  •  Przesłuchania "
                         + investigation.questionedCount() + "/3\n"
                         + "Wejście: " + (investigation.hasDeductedHiddenEntry() ? "ustalone" : "nieustalone")
                         + "  •  Alibi: " + (investigation.hasDeductedAlibiContradiction()
-                        ? "sprzeczne" : "nieporównane") + "\n"
-                        + (investigation.hasDeductedHiddenEntry()
-                        ? "Identyfikator i bezpiecznik przypięto: kamera zgasła przed wejściem."
-                        : investigation.hasHeldEvidence(CaseFile.Place.LABORATORIUM)
-                        && investigation.hasHeldEvidence(CaseFile.Place.KORYTARZ)
-                        ? "Masz oba przedmioty. Połącz je, aby wyjaśnić wejście bez nagrania."
-                        : "Zbierz oba przedmioty, aby wyjaśnić wejście bez nagrania."),
+                        ? "sprzeczne" : "nieporównane") + "\n" + nextStep,
                 23, 326, 676, 1030);
         content.getChildren().add(feedback);
 
@@ -755,14 +1008,13 @@ public final class DetectiveGame extends Application {
                 ? "Ślady połączone" : "Połącz ślady", true, 302, 813, 265);
         combine.setDisable(investigation.hasDeductedHiddenEntry());
         combine.setOnAction(event -> {
-            if (investigation.deduceHiddenEntry()) {
-                updateProgress();
-                message.setText("Identyfikator i bezpiecznik są teraz na tablicy dowodów. "
-                        + "Kamera zgasła przed wejściem o 21:14. Skonfrontuj Marka z tą luką.");
-                showBoard();
+            if (investigation.hasHeldEvidence(CaseFile.Place.LABORATORIUM)
+                    && investigation.hasVisited(CaseFile.Place.KORYTARZ)
+                    && investigation.hasReadLockLog() && investigation.hasReadCameraLog()
+                    && investigation.hasInstalledFuse()) {
+                showTimelineDeduction();
             } else {
-                feedback.setText("Podnieś identyfikator z laboratorium i bezpiecznik z korytarza. "
-                        + "Dopiero razem wyjaśniają wejście bez nagrania.");
+                feedback.setText(nextObjective());
                 shake(feedback);
             }
         });
@@ -790,6 +1042,56 @@ public final class DetectiveGame extends Application {
         Button close = boardAction("Wróć do sceny", false, 1130, 813, 235);
         close.setOnAction(event -> closeOverlay());
         content.getChildren().addAll(combine, compare, accuse, close);
+        scaledUi(board, content);
+    }
+
+    private void showTimelineDeduction() {
+        Pane board = illustratedBoard();
+        Group content = new Group();
+        Label heading = text("AKTA 01  /  OŚ CZASU", 36, "#ffe0a0");
+        heading.setLayoutX(580);
+        heading.setLayoutY(38);
+        content.getChildren().addAll(heading,
+                boardText("KAMERA", 28, 318, 215, 310),
+                boardText("21:12", 42, 318, 460, 300),
+                boardText("Wyjęty bezpiecznik odciął nagranie.", 23, 318, 530, 305),
+                boardText("ZAMEK", 28, 714, 215, 310),
+                boardText("21:14", 42, 714, 460, 300),
+                boardText("Zamek odnotował identyfikator Marka.", 23, 714, 530, 305),
+                boardText("CO WYNIKA ZE ŚLADÓW?", 26, 1107, 215, 300),
+                boardEvidenceImage("bezpiecznik.png", 405, 310, 150),
+                boardEvidenceImage("identyfikator.png", 790, 310, 155));
+
+        ToggleGroup conclusions = new ToggleGroup();
+        CaseFile.EntryConclusion[] options = CaseFile.EntryConclusion.values();
+        for (int i = 0; i < options.length; i++) {
+            CaseFile.EntryConclusion option = options[i];
+            content.getChildren().add(theoryChoice(option.description,
+                    conclusions, option, 1095, 305 + i * 94, 320));
+        }
+
+        Label feedback = boardText("Karta wskazuje sposób wejścia, a bezpiecznik przerwę nagrania. "
+                + "Co możesz ustalić bez zgadywania sprawcy?", 23, 326, 680, 1030);
+        Button check = boardAction("Zapisz wniosek", true, 1045, 813, 310);
+        check.setOnAction(event -> {
+            CaseFile.EntryConclusion selected = conclusions.getSelectedToggle() == null ? null
+                    : (CaseFile.EntryConclusion) ((ToggleButton) conclusions.getSelectedToggle()).getUserData();
+            Investigation.DeductionResult result = investigation.deduceHiddenEntry(selected);
+            feedback.setText(result.feedback());
+            if (result.correct()) {
+                updateProgress();
+                message.setText("Odczyty są teraz na tablicy dowodów. "
+                        + "Ktoś użył karty Marka podczas przerwy nagrania. Skonfrontuj go z tą luką.");
+                check.setDisable(true);
+                conclusions.getToggles().forEach(toggle -> ((ToggleButton) toggle).setDisable(true));
+                reveal(feedback);
+            } else {
+                shake(feedback);
+            }
+        });
+        Button back = boardAction("Wróć do dowodów", false, 310, 813, 285);
+        back.setOnAction(event -> showBoard());
+        content.getChildren().addAll(feedback, check, back);
         scaledUi(board, content);
     }
 
@@ -944,6 +1246,17 @@ public final class DetectiveGame extends Application {
         return label;
     }
 
+    private ImageView boardEvidenceImage(String file, double x, double y, double width) {
+        ImageView image = new ImageView(new Image(
+                getClass().getResource("/images/" + file).toExternalForm()));
+        image.setPreserveRatio(true);
+        image.setFitWidth(width);
+        image.setFitHeight(135);
+        image.setLayoutX(x);
+        image.setLayoutY(y);
+        return image;
+    }
+
     private Button boardAction(String title, boolean important,
                                double x, double y, double width) {
         Button action = button(title, important);
@@ -966,7 +1279,7 @@ public final class DetectiveGame extends Application {
         choice.setCursor(actionCursor);
         choice.setWrapText(true);
         choice.setAlignment(Pos.CENTER_LEFT);
-        choice.setPrefSize(width, 72);
+        choice.setPrefSize(width, 84);
         choice.setLayoutX(x);
         choice.setLayoutY(y);
         choice.setStyle(THEORY_OPTION);
