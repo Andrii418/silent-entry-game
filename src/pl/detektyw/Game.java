@@ -20,7 +20,7 @@ final class Game {
         System.out.println("1. Opis sprawy");
         System.out.println("2. Zbadaj miejsce");
         System.out.println("3. Przesłuchaj osobę");
-        System.out.println("4. Zebrane dowody");
+        System.out.println("4. Dowody i dedukcje");
         System.out.println("5. Wskaż sprawcę");
         System.out.println("0. Zakończ grę");
         System.out.print("> ");
@@ -81,8 +81,8 @@ final class Game {
     }
 
     private void evidence() {
-        if (investigation.clueCount() == 0) {
-            System.out.println("Nie masz jeszcze dowodów.");
+        if (investigation.clueCount() == 0 && investigation.questionedCount() == 0) {
+            System.out.println("Nie masz jeszcze dowodów ani zeznań.");
             return;
         }
         for (CaseFile.Place place : CaseFile.Place.values()) {
@@ -91,24 +91,50 @@ final class Game {
             }
         }
         System.out.println("Przesłuchano: " + investigation.questionedCount() + "/3 osób.");
+        System.out.println("1. Połącz identyfikator i bezpiecznik");
+        System.out.println("2. Porównaj zeznania Leny i Oli");
+        System.out.println("0. Wróć do akt");
+        switch (read()) {
+            case "1" -> System.out.println(investigation.deduceHiddenEntry()
+                    ? "Przypięto oba przedmioty do tablicy. Kamera zgasła przed wejściem z użyciem identyfikatora Marka."
+                    : "Najpierw znajdź identyfikator i bezpiecznik.");
+            case "2" -> System.out.println(investigation.deduceAlibiContradiction()
+                    ? "Lena była sama w biurze o 21:12, choć Ola twierdzi, że była wtedy z nią."
+                    : "Najpierw przesłuchaj Lenę i Olę.");
+            case "0" -> { }
+            default -> System.out.println("Nie ma takiej opcji.");
+        }
     }
 
     private void accuse() {
         if (!investigation.canAccuse()) {
-            System.out.println("Najpierw zbadaj wszystkie miejsca i przesłuchaj wszystkie osoby.");
+            System.out.println("Zbierz wszystkie ślady, przesłuchaj osoby i wykonaj obie dedukcje.");
             return;
         }
         System.out.println("Kogo oskarżasz? 1. Lena  2. Marek  3. Ola");
-        String choice = read();
-        if (choice.equals("3") && investigation.isCulprit(CaseFile.Suspect.OLA)) {
-            System.out.println("Trafnie. Ola zleciła Markowi wyłączenie kamery, a sama użyła jego identyfikatora.");
-            System.out.println("Umowa pokazuje motyw: chciała sprzedać prototyp konkurencji.");
-            finished = true;
-        } else if (choice.equals("1") || choice.equals("2")) {
-            System.out.println("Dowody nie składają się w spójną historię. Możesz spróbować ponownie.");
-        } else {
-            System.out.println("Nie ma takiej osoby.");
-        }
+        CaseFile.Suspect suspect = switch (read()) {
+            case "1" -> CaseFile.Suspect.LENA;
+            case "2" -> CaseFile.Suspect.MAREK;
+            case "3" -> CaseFile.Suspect.OLA;
+            default -> null;
+        };
+        System.out.println("Jak wszedł sprawca? 1. Identyfikator  2. Wyłamane drzwi  3. Pomoc Marka");
+        CaseFile.EntryMethod method = switch (read()) {
+            case "1" -> CaseFile.EntryMethod.BADGE;
+            case "2" -> CaseFile.EntryMethod.FORCED_DOOR;
+            case "3" -> CaseFile.EntryMethod.TECHNICIAN;
+            default -> null;
+        };
+        System.out.println("Dlaczego? 1. Sprzedaż  2. Zemsta  3. Przypadek");
+        CaseFile.Motive motive = switch (read()) {
+            case "1" -> CaseFile.Motive.SALE;
+            case "2" -> CaseFile.Motive.REVENGE;
+            case "3" -> CaseFile.Motive.ACCIDENT;
+            default -> null;
+        };
+        Investigation.TheoryResult result = investigation.evaluateTheory(suspect, method, motive);
+        System.out.println(result.feedback());
+        if (result.correct()) finished = true;
     }
 
     private String read() {

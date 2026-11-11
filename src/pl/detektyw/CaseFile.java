@@ -35,14 +35,40 @@ final class CaseFile {
         }
     }
 
+    enum EntryMethod {
+        BADGE("Identyfikator w czasie awarii kamery"),
+        FORCED_DOOR("Wyłamane drzwi laboratorium"),
+        TECHNICIAN("Marek osobiście otworzył drzwi");
+
+        final String description;
+
+        EntryMethod(String description) {
+            this.description = description;
+        }
+    }
+
+    enum Motive {
+        SALE("Sprzedaż prototypu konkurencji"),
+        REVENGE("Zemsta na zespole"),
+        ACCIDENT("Przypadkowe wyniesienie sprzętu");
+
+        final String description;
+
+        Motive(String description) {
+            this.description = description;
+        }
+    }
+
     static List<String> testimony(Suspect suspect, boolean hasFuse) {
         return switch (suspect) {
-            case LENA -> List.of("Lena: Wyszłam z laboratorium przed 21:00. Widziałam Olę, gdy brała od Marka identyfikator.");
+            case LENA -> List.of("Lena: O 21:12 byłam sama w biurze. Ola wyszła kilka minut wcześniej.",
+                                 "Widziałam u Oli identyfikator Marka, ale nie widziałam jej w laboratorium.");
             case MAREK -> hasFuse
-                    ? List.of("Marek: Pracowałem przy kamerze, ale bezpiecznika nie dotykałem.",
-                              "Pokazujesz bezpiecznik. Marek przyznaje, że wyjął go na polecenie Oli i pożyczył jej identyfikator.")
+                    ? List.of("Marek: O 21:10 poszedłem po narzędzia. Potem nie dotykałem kamery.",
+                              "Pokazujesz bezpiecznik. Marek przyznaje, że wyjął go do testu zasilania. Identyfikator zostawił w biurze.")
                     : List.of("Marek: Naprawiałem kamerę. O 21:10 poszedłem po narzędzia.");
-            case OLA -> List.of("Ola: Nie miałam dostępu do laboratorium. Cały wieczór spędziłam z gośćmi.");
+            case OLA -> List.of("Ola: O 21:12 byłam z Leną w biurze.",
+                               "Nie miałam identyfikatora Marka ani dostępu do laboratorium.");
         };
     }
 }

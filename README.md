@@ -6,6 +6,12 @@ Okienkowa gra detektywistyczna napisana w Javie i JavaFX. Podczas zamkniętej pr
 
 ![Laboratorium w pierwszej sprawie](docs/screenshots/game.jpg)
 
+## Rozgrywka
+
+Przeglądaj laboratorium, korytarz i biuro, klikając przedmioty, postacie i drzwi na ilustracjach. Podniesiony identyfikator i bezpiecznik widać w prawym górnym rogu. Po połączeniu ich na tablicy znikają z podręcznych przedmiotów, ale pozostają zapisane jako dowody. Zestawienie godziny awarii kamery z godziną użycia identyfikatora wyjaśnia wejście bez nagrania. Podczas przesłuchań wybierasz pytania w pasie dialogowym, widząc rozmówcę i pokój. Na ilustrowanej tablicy dowodów porównujesz też alibi. Cel widoczny u góry sceny oraz dwupoziomowe podpowiedzi prowadzą przez sprawę. Finał wymaga ułożenia całej teorii: kto ukradł prototyp, jak wszedł do laboratorium i dlaczego to zrobił. Jeśli teoria nie pasuje do dowodów, gra wskazuje konkretną sprzeczność.
+
+Kod interfejsu znajduje się w `src/pl/detektyw/DetectiveGame.java`, a zasady śledztwa i jego postęp w `Investigation.java`. Starsza wersja konsolowa korzysta z tych samych zasad.
+
 ## Uruchomienie
 
 Wymagana Java 17 lub nowsza. Pierwsze uruchomienie wymaga pobrania bibliotek JavaFX przez Maven.
