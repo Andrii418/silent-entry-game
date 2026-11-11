@@ -10,6 +10,48 @@ final class Investigation {
     private final Set<CaseFile.Suspect> questioned = EnumSet.noneOf(CaseFile.Suspect.class);
     private boolean deducedHiddenEntry;
     private boolean deducedAlibiContradiction;
+    private boolean lockLogRead;
+    private boolean cameraLogRead;
+    private boolean fuseInstalled;
+    private boolean cabinetInspected;
+
+    void inspectCabinet() {
+        cabinetInspected = true;
+    }
+
+    boolean hasInspectedCabinet() {
+        return cabinetInspected;
+    }
+
+    void readLockLog() {
+        lockLogRead = true;
+    }
+
+    boolean hasReadLockLog() {
+        return lockLogRead;
+    }
+
+    boolean readCameraLog() {
+        if (!fuseInstalled) return false;
+        cameraLogRead = true;
+        return true;
+    }
+
+    boolean hasReadCameraLog() {
+        return cameraLogRead;
+    }
+
+    boolean installFuse() {
+        if (fuseInstalled || !heldEvidence.remove(CaseFile.Place.KORYTARZ)) {
+            return false;
+        }
+        fuseInstalled = true;
+        return true;
+    }
+
+    boolean hasInstalledFuse() {
+        return fuseInstalled;
+    }
 
     void discoverClue(CaseFile.Place place) {
         if (visited.add(place) && place != CaseFile.Place.BIURO) {
@@ -79,14 +121,39 @@ final class Investigation {
         return new TheoryResult(true, "Ola wykorzystała awarię kamery, weszła z identyfikatorem Marka i zamierzała sprzedać prototyp.");
     }
 
-    boolean deduceHiddenEntry() {
-        if (heldEvidence.contains(CaseFile.Place.LABORATORIUM)
-                && heldEvidence.contains(CaseFile.Place.KORYTARZ)) {
-            heldEvidence.remove(CaseFile.Place.LABORATORIUM);
-            heldEvidence.remove(CaseFile.Place.KORYTARZ);
-            deducedHiddenEntry = true;
+    record DeductionResult(boolean correct, String feedback) {}
+
+    DeductionResult deduceHiddenEntry(CaseFile.EntryConclusion conclusion) {
+        if (deducedHiddenEntry) {
+            return new DeductionResult(true, "Ten wniosek jest już zapisany na tablicy.");
         }
-        return deducedHiddenEntry;
+        if (!heldEvidence.contains(CaseFile.Place.LABORATORIUM)
+                || !visited.contains(CaseFile.Place.KORYTARZ)) {
+            return new DeductionResult(false, "Najpierw znajdź identyfikator i bezpiecznik.");
+        }
+        if (!lockLogRead) {
+            return new DeductionResult(false,
+                    "Odczytaj dziennik zamka w laboratorium.");
+        }
+        if (!fuseInstalled) {
+            return new DeductionResult(false, "Włóż bezpiecznik do pustego gniazda, aby uruchomić kamerę.");
+        }
+        if (!cameraLogRead) {
+            return new DeductionResult(false, "Po naprawie odczytaj zapis awarii kamery w korytarzu.");
+        }
+        if (conclusion == null) {
+            return new DeductionResult(false, "Wybierz wniosek z obu śladów.");
+        }
+        if (conclusion == CaseFile.EntryConclusion.MAREK_ENTERED) {
+            return new DeductionResult(false, "Zamek rozpoznał kartę Marka, ale nie osobę, która jej użyła.");
+        }
+        if (conclusion == CaseFile.EntryConclusion.MAREK_STOLE) {
+            return new DeductionResult(false, "Bezpiecznik wyjaśnia awarię kamery, lecz nie wskazuje złodzieja.");
+        }
+        heldEvidence.remove(CaseFile.Place.LABORATORIUM);
+        deducedHiddenEntry = true;
+        return new DeductionResult(true,
+                "O 21:12 kamera zgasła. O 21:14 ktoś otworzył drzwi kartą Marka bez nagrania wejścia.");
     }
 
     boolean hasDeductedHiddenEntry() {
