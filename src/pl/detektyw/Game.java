@@ -173,7 +173,7 @@ final class Game {
             investigation.recoverPrototype();
             System.out.println("W schowku P-17 odnajdujesz skradziony prototyp.");
         } else {
-            System.out.println("Ten numer nie zgadza się z dokumentem z biura.");
+            System.out.println("Kod tego schowka nie zgadza się z kodem prototypu w umowie.");
         }
     }
 
