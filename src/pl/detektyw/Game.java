@@ -22,6 +22,7 @@ final class Game {
         System.out.println("3. Przesłuchaj osobę");
         System.out.println("4. Dowody i dedukcje");
         System.out.println("5. Wskaż sprawcę");
+        System.out.println("6. Sprawdź magazyn prototypów");
         System.out.println("0. Zakończ grę");
         System.out.print("> ");
     }
@@ -33,6 +34,7 @@ final class Game {
             case "3" -> suspects();
             case "4" -> evidence();
             case "5" -> accuse();
+            case "6" -> storage();
             case "0" -> finished = true;
             default -> System.out.println("Nie ma takiej opcji.");
         }
@@ -128,7 +130,7 @@ final class Game {
 
     private void accuse() {
         if (!investigation.canAccuse()) {
-            System.out.println("Zbierz wszystkie ślady, przesłuchaj osoby i wykonaj obie dedukcje.");
+            System.out.println("Zbierz ślady, odnajdź prototyp, przesłuchaj osoby i wykonaj obie dedukcje.");
             return;
         }
         System.out.println("Kogo oskarżasz? 1. Lena  2. Marek  3. Ola");
@@ -155,6 +157,24 @@ final class Game {
         Investigation.TheoryResult result = investigation.evaluateTheory(suspect, method, motive);
         System.out.println(result.feedback());
         if (result.correct()) finished = true;
+    }
+
+    private void storage() {
+        if (!investigation.hasVisited(CaseFile.Place.BIURO)) {
+            System.out.println("Najpierw odczytaj dokument w biurze, by poznać oznaczenie prototypu.");
+            return;
+        }
+        if (investigation.hasRecoveredPrototype()) {
+            System.out.println("Prototyp P-17 jest już zabezpieczony.");
+            return;
+        }
+        System.out.println("Trzy schowki: 1. P-11  2. P-17  3. P-21. Który sprawdzisz?");
+        if (read().equals("2")) {
+            investigation.recoverPrototype();
+            System.out.println("W schowku P-17 odnajdujesz skradziony prototyp.");
+        } else {
+            System.out.println("Ten numer nie zgadza się z dokumentem z biura.");
+        }
     }
 
     private String read() {

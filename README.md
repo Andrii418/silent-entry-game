@@ -1,6 +1,6 @@
 # Akta 01: Zniknięcie prototypu
 
-Okienkowa gra detektywistyczna napisana w Javie i JavaFX. Podczas zamkniętej prezentacji znika prototyp urządzenia. Gra zaczyna się od wyboru akt; druga sprawa jest zapowiedziana w menu, a pierwsza jest grywalna. Laboratorium, korytarz i biuro mają pełnoekranowe sceny z klikalnymi przedmiotami i postaciami.
+Okienkowa gra detektywistyczna napisana w Javie i JavaFX. Podczas zamkniętej prezentacji znika prototyp urządzenia. Gra zaczyna się od wyboru akt; druga sprawa jest zapowiedziana w menu, a pierwsza jest grywalna. Laboratorium, korytarz, biuro i magazyn mają pełnoekranowe sceny z klikalnymi przedmiotami i postaciami.
 
 ## Podgląd gry
 
@@ -12,7 +12,9 @@ Przeglądaj laboratorium, korytarz i biuro, klikając przedmioty, postacie i drz
 
 Podczas przesłuchań wybierasz pytania w pasie dialogowym, widząc rozmówcę i pokój. Na tablicy dowodów porównujesz też alibi. Cel widoczny u góry sceny oraz dwupoziomowe podpowiedzi prowadzą przez sprawę. Finał wymaga ułożenia całej teorii: kto ukradł prototyp, jak wszedł do laboratorium i dlaczego to zrobił. Jeśli teoria nie pasuje do dowodów, gra wskazuje konkretną sprzeczność.
 
-Kod interfejsu znajduje się w `src/pl/detektyw/DetectiveGame.java`, a zasady śledztwa i jego postęp w `Investigation.java`. Starsza wersja konsolowa korzysta z tych samych zasad.
+Umowa z drukarki wskazuje schowek P-17. W magazynie porównujesz oznaczenia trzech schowków, odnajdujesz prototyp i zabezpieczasz go jako dowód rzeczowy. Odzyskanie urządzenia jest wymagane przed końcowym oskarżeniem. Ilustrowana rekonstrukcja pokazuje kolejność zdarzeń po rozwiązaniu sprawy. Gra zapisuje postęp automatycznie po odkryciach i zmianie pokoju. W menu możesz wybrać **Kontynuuj** albo **Nowa gra**. Zapis znajduje się w `~/.casefile-21-14/save.properties`.
+
+Kod interfejsu znajduje się w `src/pl/detektyw/DetectiveGame.java`, zasady śledztwa w `Investigation.java`, a odczyt i zapis stanu w `CaseSave.java`. Starsza wersja konsolowa korzysta z tych samych zasad śledztwa.
 
 ## Uruchomienie
 

@@ -1,7 +1,9 @@
 package pl.detektyw;
 
 import java.util.EnumSet;
+import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /** Stan sprawy i zasady wspólne dla wersji okienkowej i konsolowej. */
 final class Investigation {
@@ -14,6 +16,17 @@ final class Investigation {
     private boolean cameraLogRead;
     private boolean fuseInstalled;
     private boolean cabinetInspected;
+    private boolean prototypeRecovered;
+
+    boolean recoverPrototype() {
+        if (!visited.contains(CaseFile.Place.BIURO)) return false;
+        prototypeRecovered = true;
+        return true;
+    }
+
+    boolean hasRecoveredPrototype() {
+        return prototypeRecovered;
+    }
 
     void inspectCabinet() {
         cabinetInspected = true;
@@ -87,7 +100,8 @@ final class Investigation {
         return visited.size() == CaseFile.Place.values().length
                 && questioned.size() == CaseFile.Suspect.values().length
                 && deducedHiddenEntry
-                && deducedAlibiContradiction;
+                && deducedAlibiContradiction
+                && prototypeRecovered;
     }
 
     record TheoryResult(boolean correct, String feedback) {}
@@ -95,7 +109,7 @@ final class Investigation {
     TheoryResult evaluateTheory(CaseFile.Suspect suspect,
                                 CaseFile.EntryMethod method, CaseFile.Motive motive) {
         if (!canAccuse()) {
-            return new TheoryResult(false, "Najpierw zbierz wszystkie dowody i wykonaj obie dedukcje.");
+            return new TheoryResult(false, "Zbierz dowody, odnajdź prototyp i wykonaj obie dedukcje.");
         }
         if (suspect == null || method == null || motive == null) {
             return new TheoryResult(false, "Uzupełnij osobę, sposób wejścia i motyw.");
@@ -118,7 +132,7 @@ final class Investigation {
         if (motive == CaseFile.Motive.ACCIDENT) {
             return new TheoryResult(false, "Umowa sprzedaży i wykorzystanie awarii kamery nie pasują do przypadku.");
         }
-        return new TheoryResult(true, "Ola wykorzystała awarię kamery, weszła z identyfikatorem Marka i zamierzała sprzedać prototyp.");
+        return new TheoryResult(true, "Ola wykorzystała awarię kamery, weszła z identyfikatorem Marka i ukryła prototyp P-17 w magazynie przed sprzedażą.");
     }
 
     record DeductionResult(boolean correct, String feedback) {}
@@ -170,5 +184,68 @@ final class Investigation {
 
     boolean hasDeductedAlibiContradiction() {
         return deducedAlibiContradiction;
+    }
+
+    void writeState(Properties data) {
+        data.setProperty("visited", names(visited));
+        data.setProperty("heldEvidence", names(heldEvidence));
+        data.setProperty("questioned", names(questioned));
+        data.setProperty("deducedHiddenEntry", Boolean.toString(deducedHiddenEntry));
+        data.setProperty("deducedAlibiContradiction", Boolean.toString(deducedAlibiContradiction));
+        data.setProperty("lockLogRead", Boolean.toString(lockLogRead));
+        data.setProperty("cameraLogRead", Boolean.toString(cameraLogRead));
+        data.setProperty("fuseInstalled", Boolean.toString(fuseInstalled));
+        data.setProperty("cabinetInspected", Boolean.toString(cabinetInspected));
+        data.setProperty("prototypeRecovered", Boolean.toString(prototypeRecovered));
+    }
+
+    static Investigation readState(Properties data) {
+        Investigation result = new Investigation();
+        readPlaces(data.getProperty("visited", ""), result.visited);
+        readPlaces(data.getProperty("heldEvidence", ""), result.heldEvidence);
+        String people = data.getProperty("questioned", "");
+        if (!people.isBlank()) {
+            for (String name : people.split(",")) {
+                result.questioned.add(CaseFile.Suspect.valueOf(name));
+            }
+        }
+        result.deducedHiddenEntry = flag(data, "deducedHiddenEntry");
+        result.deducedAlibiContradiction = flag(data, "deducedAlibiContradiction");
+        result.lockLogRead = flag(data, "lockLogRead");
+        result.cameraLogRead = flag(data, "cameraLogRead");
+        result.fuseInstalled = flag(data, "fuseInstalled");
+        result.cabinetInspected = flag(data, "cabinetInspected");
+        result.prototypeRecovered = flag(data, "prototypeRecovered");
+        if (!result.visited.containsAll(result.heldEvidence)
+                || result.cameraLogRead && !result.fuseInstalled
+                || result.fuseInstalled && !result.visited.contains(CaseFile.Place.KORYTARZ)
+                || result.fuseInstalled && result.heldEvidence.contains(CaseFile.Place.KORYTARZ)
+                || result.deducedHiddenEntry && (!result.lockLogRead || !result.cameraLogRead)
+                || result.deducedHiddenEntry && result.heldEvidence.contains(CaseFile.Place.LABORATORIUM)
+                || result.deducedAlibiContradiction && (!result.questioned.contains(CaseFile.Suspect.LENA)
+                    || !result.questioned.contains(CaseFile.Suspect.OLA))
+                || result.prototypeRecovered && !result.visited.contains(CaseFile.Place.BIURO)) {
+            throw new IllegalArgumentException("Niespójny zapis śledztwa");
+        }
+        return result;
+    }
+
+    private static String names(Set<? extends Enum<?>> values) {
+        return values.stream().map(Enum::name).collect(Collectors.joining(","));
+    }
+
+    private static void readPlaces(String value, Set<CaseFile.Place> target) {
+        if (value.isBlank()) return;
+        for (String name : value.split(",")) {
+            target.add(CaseFile.Place.valueOf(name));
+        }
+    }
+
+    private static boolean flag(Properties data, String key) {
+        String value = data.getProperty(key, "false");
+        if (!value.equals("true") && !value.equals("false")) {
+            throw new IllegalArgumentException("Nieprawidłowa wartość: " + key);
+        }
+        return Boolean.parseBoolean(value);
     }
 }

@@ -1,5 +1,7 @@
 package pl.detektyw;
 
+import java.io.IOException;
+import java.util.Optional;
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.PauseTransition;
@@ -73,6 +75,7 @@ public final class DetectiveGame extends Application {
     private Label badgePlaceholder;
     private Label fusePlaceholder;
     private boolean solved;
+    private CaseSave.Room currentLocation = CaseSave.Room.LABORATORIUM;
     private int hintLevel;
     private String hintedObjective = "";
 
@@ -103,6 +106,7 @@ public final class DetectiveGame extends Application {
     private void showMenu() {
         Pane menu = new Pane();
         background(menu, "menu-akt.png");
+        Optional<CaseSave.Progress> saved = CaseSave.load();
 
         Polygon firstFolder = new Polygon(420, 450, 760, 448, 785, 807, 320, 813);
         Polygon secondFolder = new Polygon(875, 462, 1230, 460, 1300, 809, 855, 815);
@@ -121,14 +125,26 @@ public final class DetectiveGame extends Application {
         subtitle.layoutXProperty().bind(menu.widthProperty().subtract(subtitle.widthProperty()).divide(2));
         subtitle.layoutYProperty().bind(menu.heightProperty().multiply(0.23));
 
-        Button first = button(solved ? "AKTA 01  •  Zagraj ponownie"
+        Runnable firstAction = saved.isPresent() ? () -> continueCase(saved.get()) : this::startCase;
+        Button first = button(saved.isPresent()
+                ? saved.get().solved() ? "AKTA 01  •  Zobacz finał" : "AKTA 01  •  Kontynuuj"
                 : "AKTA 01  •  Zniknięcie prototypu", true);
         first.layoutXProperty().bind(menu.widthProperty().multiply(0.33)
                 .subtract(first.widthProperty().divide(2)));
         first.layoutYProperty().bind(menu.heightProperty().multiply(0.67)
                 .subtract(first.heightProperty().divide(2)));
-        first.setOnAction(event -> startCase());
-        menuFolder(firstFolder, first, this::startCase);
+        first.setOnAction(event -> firstAction.run());
+        menuFolder(firstFolder, first, firstAction);
+
+        Button restart = null;
+        if (saved.isPresent()) {
+            restart = button("Nowa gra", false);
+            restart.setStyle(restart.getStyle() + "-fx-font-size: 13px; -fx-padding: 6 12;");
+            restart.layoutXProperty().bind(menu.widthProperty().multiply(0.33)
+                    .subtract(restart.widthProperty().divide(2)));
+            restart.layoutYProperty().bind(menu.heightProperty().multiply(0.77));
+            restart.setOnAction(event -> startCase());
+        }
 
         Button second = button("AKTA 02  •  W przygotowaniu", false);
         second.layoutXProperty().bind(menu.widthProperty().multiply(0.65)
@@ -144,6 +160,7 @@ public final class DetectiveGame extends Application {
 
         scaled(menu, firstFolder, secondFolder);
         menu.getChildren().addAll(title, subtitle, first, second, notice);
+        if (restart != null) menu.getChildren().add(restart);
         transitionTo(menu);
     }
 
@@ -206,6 +223,20 @@ public final class DetectiveGame extends Application {
         hintLevel = 0;
         hintedObjective = "";
         showLaboratory(true);
+    }
+
+    private void continueCase(CaseSave.Progress saved) {
+        investigation = saved.investigation();
+        solved = saved.solved();
+        hintLevel = 0;
+        hintedObjective = "";
+        switch (saved.room()) {
+            case LABORATORIUM -> showLaboratory();
+            case KORYTARZ -> showCorridor();
+            case BIURO -> showOffice();
+            case MAGAZYN -> showStorage();
+        }
+        if (solved) showResolution();
     }
 
     private void transitionTo(Pane next) {
@@ -276,6 +307,15 @@ public final class DetectiveGame extends Application {
             objective.setText(nextObjective());
         }
         updateInventory();
+        saveProgress();
+    }
+
+    private void saveProgress() {
+        try {
+            CaseSave.save(new CaseSave.Progress(investigation, currentLocation, solved));
+        } catch (IOException error) {
+            if (message != null) message.setText("Nie udało się zapisać postępu gry.");
+        }
     }
 
     private VBox inventory(Pane room) {
@@ -355,6 +395,8 @@ public final class DetectiveGame extends Application {
             return "Cel: zapytaj Lenę i Olę, gdzie były o 21:12.";
         if (!investigation.hasDeductedAlibiContradiction())
             return "Cel: porównaj zeznania Leny i Oli w Dowodach.";
+        if (!investigation.hasRecoveredPrototype())
+            return "Cel: odnajdź prototyp P-17 w magazynie przy biurze.";
         return "Cel: wskaż sprawcę w aktach dowodów.";
     }
 
@@ -401,6 +443,9 @@ public final class DetectiveGame extends Application {
         } else if (!investigation.hasDeductedAlibiContradiction()) {
             hint = direct ? "Otwórz Dowody, porównaj zeznania i wskaż sprzeczne alibi."
                     : "Czy Ola mogła być z Leną, jeśli Lena twierdzi, że była sama?";
+        } else if (!investigation.hasRecoveredPrototype()) {
+            hint = direct ? "W biurze kliknij znak MAGAZYN po prawej. Umowa wskazuje schowek P-17."
+                    : "Porównaj numer prototypu z umowy z oznaczeniami schowków.";
         } else {
             hint = direct ? "Sprawdź podpis na umowie, identyfikator i alibi. Potem wskaż sprawcę w Dowodach."
                     : "Sprawca potrzebował motywu i sposobu wejścia podczas przerwy nagrania.";
@@ -485,13 +530,14 @@ public final class DetectiveGame extends Application {
     }
 
     private void showLaboratory(boolean introduction) {
+        currentLocation = CaseSave.Room.LABORATORIUM;
         Pane room = room("laboratorium-v2.png", "Laboratorium jest puste. Zbadaj drzwi i podłogę.");
 
         Rectangle terminal = new Rectangle(818, 353, 190, 120);
         terminal.setArcWidth(14);
         terminal.setArcHeight(14);
         outline(terminal, "Terminal", () -> message.setText(
-                "Terminal nie działa. Ważniejszy jest zapis elektronicznego zamka: wejście o 21:14."));
+                "Terminal nie działa. Sprawdź zapis elektronicznego zamka przy drzwiach."));
 
         Polygon cabinet = new Polygon(
                 1350, 140, 1665, 140, 1665, 690, 1320, 690, 1320, 162);
@@ -530,6 +576,7 @@ public final class DetectiveGame extends Application {
             prompt.play();
         });
         raiseHud(room);
+        saveProgress();
         transitionTo(room, introduction ? () -> card("AKTA 01  /  ZNIKNIĘCIE PROTOTYPU",
                 "O 21:20 odkryto kradzież prototypu. W budynku zostały trzy osoby: "
                         + "Lena, Marek i Ola. Zacznij od laboratorium. Klikaj przedmioty "
@@ -538,6 +585,7 @@ public final class DetectiveGame extends Application {
     }
 
     private void showCorridor() {
+        currentLocation = CaseSave.Room.KORYTARZ;
         Pane room = room("korytarz-v3.png", investigation.hasInstalledFuse()
                 ? (investigation.hasReadCameraLog()
                 ? "Kamera działa po naprawie. Starej luki w nagraniu to nie wypełni. "
@@ -583,6 +631,7 @@ public final class DetectiveGame extends Application {
         });
 
         raiseHud(room);
+        saveProgress();
         transitionTo(room);
     }
 
@@ -747,19 +796,19 @@ public final class DetectiveGame extends Application {
         background(inspection, "umowa.png");
         Group content = new Group();
         Label heading = inspectionNote("BIURO  /  WYDRUK Z DRUKARKI", 50, 48, 625);
-        Label document = text("UMOWA SPRZEDAŻY\n\nPrzedmiot: prototyp\nodbiornika P-17\n\nNabywca: konkurencyjne\nlaboratorium\n\nPodpis: Ola", 29, "#3c2b1b");
+        Label document = text("UMOWA SPRZEDAŻY\n\nPrzedmiot: prototyp\nodbiornika P-17\n\nNabywca: konkurencja\n\nOdbiór: magazyn,\nschowek P-17\n\nPodpis: Ola", 26, "#3c2b1b");
         document.setStyle(document.getStyle() + "-fx-font-family: Georgia; -fx-font-weight: bold;");
         document.setWrapText(true);
         document.setPrefWidth(500);
         document.setLayoutX(650);
         document.setLayoutY(380);
-        Label note = inspectionNote("Podpis wskazuje motyw. Sam dokument nie mówi, kto otworzył laboratorium.",
+        Label note = inspectionNote("Podpis wskazuje motyw, a numer P-17 prowadzi do schowka w magazynie.",
                 50, 765, 950);
         Button collect = inspectionButton("Dodaj dokument do dowodów", 1125, 805, 430, true);
         collect.setDisable(investigation.hasVisited(CaseFile.Place.BIURO));
         collect.setOnAction(event -> {
             investigation.discoverClue(CaseFile.Place.BIURO);
-            note.setText("Umowa trafiła do Dowodów. Sprawdź też alibi i sposób wejścia.");
+            note.setText("Umowa trafiła do Dowodów. Sprawdź alibi, a potem schowek P-17.");
             collect.setDisable(true);
             updateProgress();
             pulse(document);
@@ -905,6 +954,7 @@ public final class DetectiveGame extends Application {
     }
 
     private void showOffice() {
+        currentLocation = CaseSave.Room.BIURO;
         Pane room = room("biuro.png", "W biurze są Lena, Ola i dokument pozostawiony w drukarce.");
 
         Polygon door = new Polygon(0, 89, 232, 95, 230, 730, 0, 751);
@@ -934,8 +984,85 @@ public final class DetectiveGame extends Application {
                 1361, 281, 1380, 265, 1372, 243, 1376, 213);
         outline(ola, "Ola — inwestorka", this::showOlaDialogue);
         scaled(room, door, printer, lena, ola);
+
+        Button storage = button("MAGAZYN  →", false);
+        storage.setStyle("-fx-background-color: rgba(9, 24, 35, 0.90);"
+                + "-fx-border-color: #d6a65d; -fx-border-radius: 9;"
+                + "-fx-background-radius: 9; -fx-text-fill: #ffe0a0;"
+                + "-fx-font-size: 13px; -fx-padding: 8 10;");
+        storage.layoutXProperty().bind(room.widthProperty().multiply(0.88));
+        storage.layoutYProperty().bind(room.heightProperty().multiply(0.49));
+        storage.setOnAction(event -> showStorage());
+        room.getChildren().add(storage);
         raiseHud(room);
+        saveProgress();
         transitionTo(room);
+    }
+
+    private void showStorage() {
+        currentLocation = CaseSave.Room.MAGAZYN;
+        Pane room = room("magazyn.png", investigation.hasRecoveredPrototype()
+                ? "Prototyp P-17 jest zabezpieczony. Dokończ śledztwo."
+                : investigation.hasVisited(CaseFile.Place.BIURO)
+                ? "Trzy schowki. Który numer zgadza się z umową z drukarki?"
+                : "Trzy schowki. Dokument w biurze może wskazać właściwy numer.");
+
+        Rectangle door = new Rectangle(0, 140, 235, 635);
+        outline(door, "Powrót do biura", this::showOffice);
+        Rectangle left = new Rectangle(465, 262, 245, 468);
+        outline(left, "Schowek P-11", () -> message.setText(
+                "P-11: próbki starszego projektu. Umowa dotyczy innego numeru."));
+        Rectangle middle = new Rectangle(867, 260, 235, 470);
+        outline(middle, "Schowek P-17", () -> {
+            if (investigation.hasVisited(CaseFile.Place.BIURO)) showPrototype();
+            else message.setText("Najpierw odczytaj dokument z drukarki w biurze. Jaki numer ma prototyp?");
+        });
+        Rectangle right = new Rectangle(1270, 260, 250, 470);
+        outline(right, "Schowek P-21", () -> message.setText(
+                "P-21: zaplombowane urządzenie innego zespołu. Sprawdź numer w umowie."));
+        scaled(room, door, left, middle, right);
+
+        Group plaques = new Group();
+        plaques.getChildren().addAll(storagePlaque("P-11", 538),
+                storagePlaque("P-17", 930), storagePlaque("P-21", 1340));
+        scaledUi(room, plaques);
+        raiseHud(room);
+        saveProgress();
+        transitionTo(room);
+    }
+
+    private Label storagePlaque(String code, double x) {
+        Label plaque = inspectionNote(code, x, 300, 120);
+        plaque.setStyle(plaque.getStyle() + "-fx-text-fill: #ffe0a0; -fx-font-weight: bold;");
+        plaque.setMouseTransparent(true);
+        return plaque;
+    }
+
+    private void showPrototype() {
+        Pane inspection = new Pane();
+        background(inspection, "prototyp-p17.png");
+        Group content = new Group();
+        Label heading = inspectionNote("MAGAZYN  /  SCHOWEK P-17", 50, 45, 680);
+        Label note = inspectionNote(investigation.hasRecoveredPrototype()
+                ? "Prototyp jest już zabezpieczony jako dowód rzeczowy."
+                : "Numer schowka zgadza się z umową. W środku jest zaginiony prototyp.",
+                55, 750, 1060);
+        Button collect = inspectionButton(investigation.hasRecoveredPrototype()
+                ? "Prototyp zabezpieczony" : "Zabezpiecz prototyp", 1100, 805, 455, true);
+        collect.setDisable(investigation.hasRecoveredPrototype());
+        collect.setOnAction(event -> {
+            if (!investigation.recoverPrototype()) return;
+            note.setText("Prototyp P-17 trafił do dowodów. " + nextObjective());
+            collect.setText("Prototyp zabezpieczony");
+            collect.setDisable(true);
+            updateProgress();
+            reveal(note);
+        });
+        Button back = inspectionButton("Wróć do magazynu", 70, 805, 345, false);
+        back.setOnAction(event -> showStorage());
+        content.getChildren().addAll(heading, note, collect, back);
+        scaledUi(inspection, content);
+        transitionTo(inspection);
     }
 
     private void showBoard() {
@@ -972,7 +1099,7 @@ public final class DetectiveGame extends Application {
                 23, 714, 295, 305));
         content.getChildren().add(boardText(
                 investigation.hasVisited(CaseFile.Place.BIURO)
-                        ? "W drukarce znaleziono umowę sprzedaży z podpisem Oli."
+                        ? "Umowa Oli wskazuje prototyp P-17 i schowek w magazynie."
                         : "Nie zbadano dokumentów w biurze.",
                 23, 1107, 295, 300));
         if (investigation.hasQuestioned(CaseFile.Suspect.LENA)) {
@@ -1000,7 +1127,9 @@ public final class DetectiveGame extends Application {
                         + investigation.questionedCount() + "/3\n"
                         + "Wejście: " + (investigation.hasDeductedHiddenEntry() ? "ustalone" : "nieustalone")
                         + "  •  Alibi: " + (investigation.hasDeductedAlibiContradiction()
-                        ? "sprzeczne" : "nieporównane") + "\n" + nextStep,
+                        ? "sprzeczne" : "nieporównane")
+                        + "  •  P-17: " + (investigation.hasRecoveredPrototype()
+                        ? "zabezpieczony" : "nieodnaleziony") + "\n" + nextStep,
                 23, 326, 676, 1030);
         content.getChildren().add(feedback);
 
@@ -1194,26 +1323,31 @@ public final class DetectiveGame extends Application {
     }
 
     private void showResolution() {
-        Pane board = illustratedBoard();
+        Pane board = overlay();
+        ImageView art = background(board, "rekonstrukcja.png");
+        art.setMouseTransparent(true);
         Group content = new Group();
-        Label heading = text("SPRAWA ROZWIĄZANA", 40, "#ffe0a0");
-        heading.setLayoutX(555);
-        heading.setLayoutY(34);
-        content.getChildren().addAll(heading,
-                boardText("SPRAWCA", 29, 318, 215, 310),
-                boardText("Ola. Jej alibi o 21:12 przeczy zeznaniu Leny.", 23, 318, 310, 305),
-                boardText("SPOSÓB", 29, 714, 215, 310),
-                boardText("Podczas awarii kamery użyła identyfikatora Marka. Zamek otwarto o 21:14.",
-                        23, 714, 310, 305),
-                boardText("MOTYW", 29, 1107, 215, 300),
-                boardText("Umowa sprzedaży prototypu konkurencji nosi jej podpis.",
-                        23, 1107, 310, 300),
-                boardText("21:12 — kamera gaśnie. 21:14 — wejście. 21:20 — odkrycie kradzieży.",
-                        23, 326, 680, 1030));
-        Button menu = boardAction("Wróć do menu akt", true, 1030, 813, 320);
+        Label heading = inspectionNote("AKTA 01  /  SPRAWA ROZWIĄZANA", 50, 42, 860);
+        Label motive = inspectionNote("Umowa Oli ujawniła plan sprzedaży konkurencji.", 50, 116, 800);
+        Label outage = inspectionNote("21:12  •  Kamera traci zasilanie.", 45, 735, 480);
+        Label entry = inspectionNote("21:14  •  Ola używa karty Marka.", 590, 735, 480);
+        Label recovery = inspectionNote("P-17  •  Prototyp ukryty w magazynie.", 1135, 735, 490);
+        outage.setOpacity(0);
+        entry.setOpacity(0);
+        recovery.setOpacity(0);
+        Button menu = inspectionButton("Wróć do menu akt", 1160, 850, 430, true);
         menu.setOnAction(event -> showMenu());
-        content.getChildren().add(menu);
+        content.getChildren().addAll(heading, motive, outage, entry, recovery, menu);
         scaledUi(board, content);
+        revealAfter(outage, 200);
+        revealAfter(entry, 850);
+        revealAfter(recovery, 1500);
+    }
+
+    private void revealAfter(Node node, int milliseconds) {
+        PauseTransition delay = new PauseTransition(Duration.millis(milliseconds));
+        delay.setOnFinished(event -> reveal(node));
+        delay.play();
     }
 
     private Pane illustratedBoard() {
