@@ -12,7 +12,7 @@ Przeglądaj laboratorium, korytarz i biuro, klikając przedmioty, postacie i drz
 
 Podczas przesłuchań wybierasz pytania w pasie dialogowym, widząc rozmówcę i pokój. Na tablicy dowodów porównujesz też alibi. Cel widoczny u góry sceny oraz dwupoziomowe podpowiedzi prowadzą przez sprawę. Finał wymaga ułożenia całej teorii: kto ukradł prototyp, jak wszedł do laboratorium i dlaczego to zrobił. Jeśli teoria nie pasuje do dowodów, gra wskazuje konkretną sprzeczność.
 
-Umowa z drukarki wskazuje schowek P-17. W magazynie porównujesz oznaczenia trzech schowków, odnajdujesz prototyp i zabezpieczasz go jako dowód rzeczowy. Odzyskanie urządzenia jest wymagane przed końcowym oskarżeniem. Ilustrowana rekonstrukcja pokazuje kolejność zdarzeń po rozwiązaniu sprawy. Gra zapisuje postęp automatycznie po odkryciach i zmianie pokoju. W menu możesz wybrać **Kontynuuj** albo **Nowa gra**. Zapis znajduje się w `~/.casefile-21-14/save.properties`.
+Umowa z drukarki podaje kod prototypu P-17 i odbiór z magazynu o 22:00. W magazynie porównujesz kod z oznaczeniami trzech schowków, odnajdujesz prototyp i zabezpieczasz go jako dowód rzeczowy. Odzyskanie urządzenia jest wymagane przed końcowym oskarżeniem. Ilustrowana rekonstrukcja pokazuje kolejność zdarzeń po rozwiązaniu sprawy. Gra zapisuje postęp automatycznie po odkryciach i zmianie pokoju. W menu możesz wybrać **Kontynuuj** albo **Nowa gra**. Zapis znajduje się w `~/.casefile-21-14/save.properties`.
 
 Kod interfejsu znajduje się w `src/pl/detektyw/DetectiveGame.java`, zasady śledztwa w `Investigation.java`, a odczyt i zapis stanu w `CaseSave.java`. Starsza wersja konsolowa korzysta z tych samych zasad śledztwa.
 

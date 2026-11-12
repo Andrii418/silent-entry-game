@@ -8,7 +8,7 @@ final class CaseFile {
     enum Place {
         LABORATORIUM("Laboratorium", "Na podłodze leży identyfikator techniczny Marka. Rejestr zamka pokazuje wejście o 21:14.", "identyfikator Marka"),
         KORYTARZ("Korytarz", "Kamera zgasła o 21:12. W szafce serwisowej brakuje bezpiecznika; wyjęty leżał obok na podłodze.", "bezpiecznik"),
-        BIURO("Biuro", "W drukarce leży podpisana przez Olę umowa sprzedaży prototypu P-17. Wskazuje schowek P-17 w magazynie.", "umowa P-17 z podpisem Oli");
+        BIURO("Biuro", "W drukarce leży podpisana przez Olę umowa sprzedaży prototypu P-17. Odbiór z magazynu zaplanowano na 22:00.", "umowa P-17 z podpisem Oli");
 
         final String name;
         final String description;
@@ -76,9 +76,9 @@ final class CaseFile {
             case LENA -> List.of("Lena: O 21:12 byłam sama w biurze. Ola wyszła kilka minut wcześniej.",
                                  "Widziałam u Oli identyfikator Marka, ale nie widziałam jej w laboratorium.");
             case MAREK -> hasFuse
-                    ? List.of("Marek: O 21:10 poszedłem po narzędzia. Potem nie dotykałem kamery.",
-                              "Pokazujesz bezpiecznik. Marek przyznaje, że wyjął go do testu zasilania. Identyfikator zostawił w biurze.")
-                    : List.of("Marek: Naprawiałem kamerę. O 21:10 poszedłem po narzędzia.");
+                    ? List.of("Marek: Testowałem zasilanie kamery. Wyszedłem po narzędzia, a przed końcem naprawy ogłoszono kradzież.",
+                              "Pokazujesz bezpiecznik. Marek: O 21:12 wyjąłem go do testu. Upadł przy szafce. Identyfikator zostawiłem w biurze.")
+                    : List.of("Marek: Testowałem zasilanie kamery. Wyszedłem po narzędzia.");
             case OLA -> List.of("Ola: O 21:12 byłam z Leną w biurze.",
                                "Nie miałam identyfikatora Marka ani dostępu do laboratorium.");
         };

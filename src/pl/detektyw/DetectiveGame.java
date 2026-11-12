@@ -444,7 +444,7 @@ public final class DetectiveGame extends Application {
             hint = direct ? "Otwórz Dowody, porównaj zeznania i wskaż sprzeczne alibi."
                     : "Czy Ola mogła być z Leną, jeśli Lena twierdzi, że była sama?";
         } else if (!investigation.hasRecoveredPrototype()) {
-            hint = direct ? "W biurze kliknij znak MAGAZYN po prawej. Umowa wskazuje schowek P-17."
+            hint = direct ? "W biurze kliknij znak MAGAZYN po prawej. Dopasuj P-17 z umowy do schowka."
                     : "Porównaj numer prototypu z umowy z oznaczeniami schowków.";
         } else {
             hint = direct ? "Sprawdź podpis na umowie, identyfikator i alibi. Potem wskaż sprawcę w Dowodach."
@@ -796,19 +796,19 @@ public final class DetectiveGame extends Application {
         background(inspection, "umowa.png");
         Group content = new Group();
         Label heading = inspectionNote("BIURO  /  WYDRUK Z DRUKARKI", 50, 48, 625);
-        Label document = text("UMOWA SPRZEDAŻY\n\nPrzedmiot: prototyp\nodbiornika P-17\n\nNabywca: konkurencja\n\nOdbiór: magazyn,\nschowek P-17\n\nPodpis: Ola", 26, "#3c2b1b");
+        Label document = text("UMOWA SPRZEDAŻY\n\nPrzedmiot: prototyp\nodbiornika P-17\n\nNabywca: konkurencja\n\nOdbiór: magazyn\no 22:00\n\nPodpis: Ola", 26, "#3c2b1b");
         document.setStyle(document.getStyle() + "-fx-font-family: Georgia; -fx-font-weight: bold;");
         document.setWrapText(true);
         document.setPrefWidth(500);
         document.setLayoutX(650);
         document.setLayoutY(380);
-        Label note = inspectionNote("Podpis wskazuje motyw, a numer P-17 prowadzi do schowka w magazynie.",
+        Label note = inspectionNote("Odbiór o 22:00. W magazynie dopasuj oznaczenie P-17.",
                 50, 765, 950);
         Button collect = inspectionButton("Dodaj dokument do dowodów", 1125, 805, 430, true);
         collect.setDisable(investigation.hasVisited(CaseFile.Place.BIURO));
         collect.setOnAction(event -> {
             investigation.discoverClue(CaseFile.Place.BIURO);
-            note.setText("Umowa trafiła do Dowodów. Sprawdź alibi, a potem schowek P-17.");
+            note.setText("Umowa trafiła do Dowodów. Sprawdź alibi i magazyn.");
             collect.setDisable(true);
             updateProgress();
             pulse(document);
@@ -845,7 +845,7 @@ public final class DetectiveGame extends Application {
 
         Button camera = button("Zapytaj o kamerę", false);
         camera.setOnAction(event -> reply.setText(
-                "Marek: O 21:10 poszedłem po narzędzia. Potem nie dotykałem kamery."));
+                "Marek: Testowałem zasilanie kamery. Wyszedłem po narzędzia, a przed końcem naprawy ogłoszono kradzież."));
 
         Button evidence = button("Skonfrontuj z osią czasu", true);
         evidence.setOnAction(event -> {
@@ -855,7 +855,7 @@ public final class DetectiveGame extends Application {
             }
 
             investigation.question(CaseFile.Suspect.MAREK);
-            reply.setText("Marek: Wyjąłem bezpiecznik do testu zasilania. "
+            reply.setText("Marek: O 21:12 wyjąłem bezpiecznik do testu. Upadł przy szafce. "
                     + "Identyfikator zostawiłem w biurze. Ktoś musiał go zabrać.");
             camera.setDisable(true);
             evidence.setDisable(true);
@@ -1004,14 +1004,14 @@ public final class DetectiveGame extends Application {
         Pane room = room("magazyn.png", investigation.hasRecoveredPrototype()
                 ? "Prototyp P-17 jest zabezpieczony. Dokończ śledztwo."
                 : investigation.hasVisited(CaseFile.Place.BIURO)
-                ? "Trzy schowki. Który numer zgadza się z umową z drukarki?"
+                ? "Trzy schowki. Który ma kod prototypu z umowy?"
                 : "Trzy schowki. Dokument w biurze może wskazać właściwy numer.");
 
         Rectangle door = new Rectangle(0, 140, 235, 635);
         outline(door, "Powrót do biura", this::showOffice);
         Rectangle left = new Rectangle(465, 262, 245, 468);
         outline(left, "Schowek P-11", () -> message.setText(
-                "P-11: próbki starszego projektu. Umowa dotyczy innego numeru."));
+                "P-11: próbki starszego projektu. To inny model niż na umowie."));
         Rectangle middle = new Rectangle(867, 260, 235, 470);
         outline(middle, "Schowek P-17", () -> {
             if (investigation.hasVisited(CaseFile.Place.BIURO)) showPrototype();
@@ -1019,7 +1019,7 @@ public final class DetectiveGame extends Application {
         });
         Rectangle right = new Rectangle(1270, 260, 250, 470);
         outline(right, "Schowek P-21", () -> message.setText(
-                "P-21: zaplombowane urządzenie innego zespołu. Sprawdź numer w umowie."));
+                "P-21: urządzenie innego zespołu. Sprawdź kod prototypu w umowie."));
         scaled(room, door, left, middle, right);
 
         Group plaques = new Group();
@@ -1045,7 +1045,7 @@ public final class DetectiveGame extends Application {
         Label heading = inspectionNote("MAGAZYN  /  SCHOWEK P-17", 50, 45, 680);
         Label note = inspectionNote(investigation.hasRecoveredPrototype()
                 ? "Prototyp jest już zabezpieczony jako dowód rzeczowy."
-                : "Numer schowka zgadza się z umową. W środku jest zaginiony prototyp.",
+                : "Oznaczenie P-17 zgadza się z przedmiotem umowy. W środku jest prototyp.",
                 55, 750, 1060);
         Button collect = inspectionButton(investigation.hasRecoveredPrototype()
                 ? "Prototyp zabezpieczony" : "Zabezpiecz prototyp", 1100, 805, 455, true);
@@ -1099,7 +1099,7 @@ public final class DetectiveGame extends Application {
                 23, 714, 295, 305));
         content.getChildren().add(boardText(
                 investigation.hasVisited(CaseFile.Place.BIURO)
-                        ? "Umowa Oli wskazuje prototyp P-17 i schowek w magazynie."
+                        ? "Umowa Oli: sprzedaż P-17, odbiór z magazynu o 22:00."
                         : "Nie zbadano dokumentów w biurze.",
                 23, 1107, 295, 300));
         if (investigation.hasQuestioned(CaseFile.Suspect.LENA)) {
@@ -1328,10 +1328,10 @@ public final class DetectiveGame extends Application {
         art.setMouseTransparent(true);
         Group content = new Group();
         Label heading = inspectionNote("AKTA 01  /  SPRAWA ROZWIĄZANA", 50, 42, 860);
-        Label motive = inspectionNote("Umowa Oli ujawniła plan sprzedaży konkurencji.", 50, 116, 800);
+        Label motive = inspectionNote("Umowa Oli: odbiór prototypu przez konkurencję o 22:00.", 50, 116, 800);
         Label outage = inspectionNote("21:12  •  Kamera traci zasilanie.", 45, 735, 480);
         Label entry = inspectionNote("21:14  •  Ola używa karty Marka.", 590, 735, 480);
-        Label recovery = inspectionNote("P-17  •  Prototyp ukryty w magazynie.", 1135, 735, 490);
+        Label recovery = inspectionNote("P-17  •  Ukryty do odbioru o 22:00.", 1135, 735, 490);
         outage.setOpacity(0);
         entry.setOpacity(0);
         recovery.setOpacity(0);
