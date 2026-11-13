@@ -73,8 +73,8 @@ final class CaseFile {
 
     static List<String> testimony(Suspect suspect, boolean hasFuse) {
         return switch (suspect) {
-            case LENA -> List.of("Lena: O 21:12 byłam sama w biurze. Ola wyszła kilka minut wcześniej.",
-                                 "Widziałam u Oli identyfikator Marka, ale nie widziałam jej w laboratorium.");
+            case LENA -> List.of("Lena: O 21:12 byłam sama w biurze. Kilka minut wcześniej Ola wyszła z identyfikatorem Marka.",
+                                 "Widziałam kartę u Oli, ale nie widziałam jej przy drzwiach laboratorium.");
             case MAREK -> hasFuse
                     ? List.of("Marek: Testowałem zasilanie kamery. Wyszedłem po narzędzia, a przed końcem naprawy ogłoszono kradzież.",
                               "Pokazujesz bezpiecznik. Marek: O 21:12 wyjąłem go do testu. Upadł przy szafce. Identyfikator zostawiłem w biurze.")

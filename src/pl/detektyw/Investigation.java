@@ -5,7 +5,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/** Stan sprawy i zasady wspólne dla wersji okienkowej i konsolowej. */
 final class Investigation {
     private final Set<CaseFile.Place> visited = EnumSet.noneOf(CaseFile.Place.class);
     private final Set<CaseFile.Place> heldEvidence = EnumSet.noneOf(CaseFile.Place.class);
@@ -118,7 +117,7 @@ final class Investigation {
             return new TheoryResult(false, "Lena widziała identyfikator u innej osoby. Sprawdź też podpis na umowie.");
         }
         if (suspect == CaseFile.Suspect.MAREK) {
-            return new TheoryResult(false, "Marek wyłączył kamerę, ale podpis na umowie i fałszywe alibi wskazują gdzie indziej.");
+            return new TheoryResult(false, "Marek wyjął bezpiecznik, ale Lena widziała jego kartę u Oli. Sprawdź też podpis i alibi.");
         }
         if (method == CaseFile.EntryMethod.FORCED_DOOR) {
             return new TheoryResult(false, "Zamek zapisał użycie identyfikatora o 21:14. Nie ma śladów włamania.");
@@ -132,7 +131,7 @@ final class Investigation {
         if (motive == CaseFile.Motive.ACCIDENT) {
             return new TheoryResult(false, "Umowa sprzedaży i wykorzystanie awarii kamery nie pasują do przypadku.");
         }
-        return new TheoryResult(true, "Ola wykorzystała awarię kamery, weszła z identyfikatorem Marka i ukryła prototyp P-17 w magazynie przed sprzedażą.");
+        return new TheoryResult(true, "Lena widziała kartę Marka u Oli. Ola skorzystała z awarii kamery, weszła do laboratorium o 21:14 i ukryła prototyp przed odbiorem o 22:00.");
     }
 
     record DeductionResult(boolean correct, String feedback) {}
