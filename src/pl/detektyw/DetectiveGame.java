@@ -40,7 +40,6 @@ import javafx.scene.transform.Scale;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-/** Ekrany i interakcje pierwszej sprawy. Stan śledztwa przechowuje Investigation. */
 public final class DetectiveGame extends Application {
     private static final String CARD = "-fx-background-color: rgba(12, 24, 36, 0.94);"
             + "-fx-background-radius: 18; -fx-border-color: #9bb8c8;"
@@ -873,15 +872,16 @@ public final class DetectiveGame extends Application {
 
         Button time = button("Gdzie byłaś o 21:12?", true);
         time.setOnAction(event -> {
-            reply.setText("Lena: Byłam sama w biurze. Ola wyszła kilka minut wcześniej.");
+            reply.setText("Lena: Byłam sama w biurze. Kilka minut wcześniej Ola wyszła "
+                    + "z identyfikatorem Marka w dłoni.");
             investigation.question(CaseFile.Suspect.LENA);
             updateProgress();
         });
 
         Button badge = button("Czy widziałaś identyfikator Marka?", false);
         badge.setOnAction(event -> {
-            reply.setText("Lena: Widziałam identyfikator w dłoni Oli. "
-                    + "Nie widziałam jednak, czy weszła do laboratorium.");
+            reply.setText("Lena: Widziałam identyfikator Marka w dłoni Oli, "
+                    + "ale nie widziałam jej przy drzwiach laboratorium.");
         });
 
         Button close = button("Zakończ rozmowę", false);
@@ -1103,7 +1103,8 @@ public final class DetectiveGame extends Application {
                         : "Nie zbadano dokumentów w biurze.",
                 23, 1107, 295, 300));
         if (investigation.hasQuestioned(CaseFile.Suspect.LENA)) {
-            content.getChildren().add(boardText("Lena: o 21:12 byłam sama.", 19, 1107, 420, 300));
+            content.getChildren().add(boardText("Lena: o 21:12 sama; karta Marka u Oli.",
+                    19, 1107, 420, 300));
         }
         if (investigation.hasQuestioned(CaseFile.Suspect.OLA)) {
             content.getChildren().add(boardText("Ola: o 21:12 byłam z Leną.", 19, 1107, 475, 300));
@@ -1296,7 +1297,8 @@ public final class DetectiveGame extends Application {
                     motives, motive, 1095, 300 + i * 91, 320));
         }
 
-        Label feedback = boardText("Wybierz osobę, sposób wejścia i motyw. Potem sprawdź teorię.",
+        Label feedback = boardText("Lena widziała kartę u Oli. Zamek ją zapisał; "
+                        + "umowa wyjaśnia motyw. Ułóż teorię z tych śladów.",
                 23, 326, 680, 1030);
         Button check = boardAction("Sprawdź teorię", true, 1040, 813, 300);
         check.setOnAction(event -> {

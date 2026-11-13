@@ -10,7 +10,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import java.util.Properties;
 
-/** Jeden zapis pierwszej sprawy. Plik powstaje poza katalogiem projektu. */
 final class CaseSave {
     enum Room { LABORATORIUM, KORYTARZ, BIURO, MAGAZYN }
 
